@@ -461,8 +461,8 @@ function civicrm_turn_comments_off() {
 function civicrm_check_permission($args) {
   if ($args[0] != 'civicrm') {
     return FALSE;
-  }
 
+  }
   $config = CRM_Core_Config::singleton();
 
   // set frontend true
@@ -497,7 +497,7 @@ function civicrm_check_permission($args) {
 
     if (
       $arg1 == 'pcp' &&
-      in_array($arg2, array('info'))
+      (!$arg2 || in_array($arg2, array('info')))
     ) {
       return TRUE;
     }
@@ -520,7 +520,7 @@ function civicrm_check_permission($args) {
     }
 
     if ($arg1 == 'pcp' &&
-      in_array($arg2, array('info'))
+      (!$arg2 || in_array($arg2, array('info')))
     ) {
       return TRUE;
     }
