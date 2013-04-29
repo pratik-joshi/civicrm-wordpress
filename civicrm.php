@@ -461,7 +461,6 @@ function civicrm_turn_comments_off() {
 function civicrm_check_permission($args) {
   if ($args[0] != 'civicrm') {
     return FALSE;
-
   }
   $config = CRM_Core_Config::singleton();
 
