@@ -1,7 +1,7 @@
 <?php
 /*
  +--------------------------------------------------------------------+
- | CiviCRM version 4.4                                              |
+ | CiviCRM version 4.4                                                |
  +--------------------------------------------------------------------+
  | Copyright CiviCRM LLC (c) 2004-2013                                |
  +--------------------------------------------------------------------+
@@ -215,6 +215,8 @@ class CiviCRM_For_WordPress {
     // register the CiviCRM shortcode
     add_shortcode( 'civicrm', array( $this, 'shortcode_handler' ) );
 
+    // register civicrm widget
+    add_action('widgets_init', 'register_civicrm_wigets');
 
     // only when in WordPress admin...
     if ( is_admin() ) {
@@ -263,11 +265,8 @@ class CiviCRM_For_WordPress {
         // we do this here rather than as an action, since we don't control the order
         $this->buffer_start();
         $this->wp_frontend();
-
       }
-
     }
-
   }
 
 
@@ -1520,6 +1519,7 @@ Procedures start here
  * @return CiviCRM_For_WordPress instance
  */
 function civi_wp() {
+
   return CiviCRM_For_WordPress::singleton();
 }
 
@@ -1536,7 +1536,6 @@ if ( defined( 'CIVICRM_LATE_LOAD' ) ) {
 } else {
   civi_wp();
 }
-
 
 // tell WordPress to call plugin activation method, although it's still directed
 // at the legacy callback, in case there are situations where the function is
@@ -1679,4 +1678,118 @@ function t( $str, $sub = NULL ) {
     $str = str_replace( array_keys( $sub ), array_values( $sub ), $str );
   }
   return $str;
+}
+
+/*
+ * register civicrm widgets
+ */
+function register_civicrm_wigets() {
+  // register event widget
+  register_widget('Event_Widget');
+}
+
+/**
+ * Example Widget class.
+ * This class handles everything that needs to be handled with the widget:
+ * the settings, form, display, and update.  Nice!
+ *
+ * @since 0.1
+ */
+class Event_Widget extends WP_Widget {
+
+	/**
+	 * Widget setup.
+	 */
+	function Event_Widget() {
+    /* Widget settings. */
+		$widget_ops = array( 'classname' => 'civicrm_event', 'description' => __('CiviCRM Event Widget', 'civicrm_event') );
+		/* Widget control settings. */
+		$control_ops = array( 'width' => 300, 'height' => 350, 'id_base' => 'civicrm-event-widget' );
+		/* Create the widget. */
+		$this->WP_Widget( 'civicrm-event-widget', __('Event Widget', 'civicrm_event'), $widget_ops, $control_ops );
+	}
+
+	/**
+	 * How to display the widget on the screen.
+	 */
+	function widget( $args, $instance ) {
+		extract( $args );
+    var_dump($instance);
+		/* Our variables from the widget settings. */
+		$title = apply_filters('widget_title', $instance['title'] );
+		// $name = $instance['name'];
+		// $sex = $instance['sex'];
+		// $show_sex = isset( $instance['show_sex'] ) ? $instance['show_sex'] : false;
+    $setEventCriteria = 'None';
+    if ($instance['current_and_upcoming']) {
+      $setEventCriteria = 'Current And Upcoming';
+    }
+
+    if ($instance['upcoming']) {
+      $setEventCriteria = 'Upcoming';
+    }
+
+
+		/* Before widget (defined by themes). */
+		echo $before_widget;
+
+		/* Display the widget title if one was input (before and after defined by themes). */
+		if ( $title )
+			echo $before_title . $title . $after_title;
+
+    printf('<p>' .__('Set criteria is : ', 'civicrm_event'), $setEventCriteria);
+
+		/* Display name from widget settings if one was input. */
+		// if ( $name )
+		// 	printf( '<p>' . __('Hello. My name is %1$s.', 'example') . '</p>', $name );
+
+		// /* If show sex was selected, display the user's sex. */
+		// if ( $show_sex )
+		// 	printf( '<p>' . __('I am a %1$s.', 'example.') . '</p>', $sex );
+
+		/* After widget (defined by themes). */
+		echo $after_widget;
+	}
+
+	/**
+	 * Update the widget settings.
+	 */
+	function update( $new_instance, $old_instance ) {
+		$instance = $old_instance;
+
+		$instance['title'] = strip_tags( $new_instance['title'] );
+		$instance['current_and_upcoming'] = $new_instance['current_and_upcoming'];
+		$instance['upcoming'] = $new_instance['upcoming'];
+
+		return $instance;
+	}
+
+	/**
+	 * Displays the widget settings controls on the widget panel.
+	 * Make use of the get_field_id() and get_field_name() function
+	 * when creating your form elements. This handles the confusing stuff.
+	 */
+	function form($instance) {
+
+		/* Set up some default widget settings. */
+		// $defaults = array( 'title' => __('Example', 'example'), 'name' => __('John Doe', 'civicrm_event'), 'sex' => 'male', 'show_sex' => true );
+    // $instance = wp_parse_args( (array) $instance, $defaults ); ?>
+
+		<!-- Widget Title: Text Input -->
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e('Title:', 'hybrid'); ?></label>
+			<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo $instance['title']; ?>" style="width:100%;" />
+		</p>
+
+		<!-- Event Date Filter -->
+		<p>
+			<input type='radio' id="<?php echo $this->get_field_id( 'current_and_upcoming' ); ?>" name='event_filter' checked="<?php echo $instance['current_and_upcoming']; ?>" />
+			<label for="<?php echo $this->get_field_id( 'current_and_upcoming' ); ?>"><?php _e('Current and Upcoming', 'civicrm_event'); ?></label>
+		</p>
+		<p>
+			<input type='radio' id="<?php echo $this->get_field_id( 'upcoming' ); ?>" name='event_filter' checked="<?php echo $instance['upcoming']; ?>" />
+			<label for="<?php echo $this->get_field_id( 'upcoming' ); ?>"><?php _e('Upcoming', 'civicrm_event'); ?></label>
+		</p>
+	<?php
+	}
 }
